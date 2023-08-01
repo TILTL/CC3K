@@ -7,11 +7,9 @@
 
 
 class Dwarf : public Enemy {
-    //DHoard *dhoard;
  public:
-    Dwarf(Position *pos);
+    Dwarf(unique_ptr<Position> pos);
     ~Dwarf() {}
-    //string attackPlayerToVampire(Player *opponent);
 };
 
 #endif

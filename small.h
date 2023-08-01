@@ -10,7 +10,7 @@ using namespace std;
 
 class Small : public Treasure {
  public:
-    Small(Position *pos);
+    Small(unique_ptr<Position> pos);
     ~Small() {}
 };
 

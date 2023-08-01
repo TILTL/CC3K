@@ -1,5 +1,4 @@
 #include "position.h"
-#include <string>
 
 using namespace std;
 
@@ -13,10 +12,10 @@ Position Position::newPos(string dir) const{
     Position p;
     if (dir == "no") {
 		p.x = this->x;
-		p.y = this->y + 1;
+		p.y = this->y - 1;
 	} else if (dir == "so") {
 		p.x = this->x;
-		p.y = this->y - 1;
+		p.y = this->y + 1;
 	} else if (dir == "we") {
 		p.x = this->x - 1;
 		p.y = this->y;

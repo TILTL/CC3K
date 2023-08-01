@@ -7,23 +7,24 @@
 #include "display.h"
 #include "floor.h"
 #include <iostream>
+#include <memory>
 using namespace std;
 
 class GameController {
-   Floor *floor;
-   Display *display;
+   unique_ptr<Floor> floor;
+  unique_ptr<Display> display;
    string status;
+   bool canRandomMove = true;
  
  public:
    GameController(): floor(new Floor), display(new Display) {}
    void start(); 
-   void readCommand(string input); //cope with commands
-   void nextFloor();
+   void readCommand(string input); 
    bool validDirection(string input) const;
-   ~GameController(){ delete floor; delete display; }
    Floor *getFloor() const;
-   string getStatus() const;
    Display *getDisplay() const;
+   string getStatus() const;
+   ~GameController(){}
 };
 
 #endif

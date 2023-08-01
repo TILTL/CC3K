@@ -1,9 +1,8 @@
 #include "floor.h"
-#include <iostream>
+
 using namespace std;
 
-Floor::Floor() {
-    this->player = new Player();
+Floor::Floor(): player(std::make_unique<Player>()) {
     for (int i = 0; i < 6; ++i){
         this->isPotionKnown[i] = false;
     }
@@ -31,36 +30,8 @@ void Floor::redrawMap() {
 
 // destructor
 Floor::~Floor() {
-    // delete enemy
-    for (int i = 0; i < enemies.size(); ++i) {
-        Enemy * tmp = enemies[i];
-        enemies.erase(enemies.begin() + i);
-        delete tmp;
-        --i;
-    }
-    // delete treasure
-    for (int i = 0; i < treasures.size(); ++i) { 
-        Treasure *tmp = treasures[i];
-        treasures.erase(treasures.begin() + i);
-        delete tmp;
-        --i;
-    }
-    // delete potion
-    for (int i = 0; i < potions.size(); ++i) {
-        Potion * tmp = potions[i];
-        potions.erase(potions.begin() + i);
-        delete tmp;
-        --i;
-    }
-    // delete chamber
-    for (int i = 0; i < chambers.size(); ++i) {
-        Chamber * tmp = chambers[i];
-        chambers.erase(chambers.begin() + i);
-        delete tmp;
-        --i;
-    }
-    // delete player
-    delete player;
+    clearFloor();
+    chambers.clear();
 }
 
 void Floor::initFloor(char race) {
@@ -71,36 +42,49 @@ void Floor::initFloor(char race) {
     spawnStair(playerChamberID);
     spawnItems(dragonNum);
     spawnEnemies(dragonNum);
-    
-    /*for (int i = 0; i < 6; i++) {
-        isPotionKnown[i] = false;
-    }*/
+}
+
+void Floor::clearFloor() {
+    enemies.clear();
+    treasures.clear();
+    potions.clear();
 }
 
 void Floor::initNext() {
+    bool isPreNeutral = this->isMNeutral;
     redrawMap();
+    clearFloor();
     int playerChamberID;
     int dragonNum = 0;
     generateChamber();
     playerChamberID = 1 + rand() % 5;
     Position pos = chambers[playerChamberID - 1]->getPosition();
+    int x = pos.getX();
+    int y = pos.getY();
+    unique_ptr<Position> p = make_unique<Position>(x, y);
     player->modifyAtk(player->getDefaultAtk());
     player->modifyDef(player->getDefaultDef());
-    player->setPos(&pos);
+    player->setPos(move(p));
     map[pos.getY()][pos.getX()] = '@';
     spawnStair(playerChamberID);
     spawnItems(dragonNum);
     spawnEnemies(dragonNum);
-    /*for (int i = 0; i < 6; i++) {
-        isPotionKnown[i] = false;
-    }*/
+    // merchant hostile from previous floor
+    if (!isPreNeutral) {
+        isMNeutral = false;
+        for (size_t k = 0; k < enemies.size(); k++) {
+            if (enemies[k]->getType() == "Merchant") {
+                enemies[k]->notNeutral();
+            }
+       }
+    }
 }
 
 // spawn chamber
 void Floor::generateChamber() {
 	for(int i = 0; i < 5; i++) {
-		Chamber *c = new Chamber(i + 1);
-		chambers.push_back(c);
+		unique_ptr<Chamber> c = make_unique<Chamber>(i + 1);
+		chambers.push_back(move(c));
 	}
 }
 
@@ -108,7 +92,10 @@ void Floor::generateChamber() {
 void Floor::spawnPlayer(char race, int &playerChamberID) {
     playerChamberID = rand() % 5 + 1;
     Position pos = chambers[playerChamberID - 1]->getPosition();
-    player = PlayerFactory::createPlayer(race, &pos);
+    int x = pos.getX();
+    int y = pos.getY();
+    unique_ptr<Position> p = make_unique<Position>(x, y);
+    this->player = PlayerFactory::createPlayer(race, move(p));
     map[pos.getY()][pos.getX()] = '@';
 }
 
@@ -134,7 +121,12 @@ void Floor::spawnItems(int &dragonNum) {
     for (int i = 0; i < 10; i++) {
         chamberID = 1 + rand() % 5;
         pos = getValidPos(chamberID);
-        potions.push_back(ItemFactory::createPotion(type, &pos));
+        int x = pos.getX();
+        int y = pos.getY();
+        unique_ptr<Position> p = make_unique<Position>(x, y);
+        unique_ptr<Item> itemPtr = ItemFactory::createItem(type, ItemType::Potion, move(p));
+        potions.push_back(unique_ptr<Potion>(static_cast<Potion*>(itemPtr.release())));
+        //potions.push_back(ItemFactory::createItem(type, ItemType::Potion, move(p)));
         map[pos.getY()][pos.getX()] = type;
     }
 
@@ -142,14 +134,21 @@ void Floor::spawnItems(int &dragonNum) {
     for (int i = 0; i < 10; i++) {
         chamberID = 1 + rand() % 5;
         pos = getValidPos(chamberID);
-        Treasure *t = ItemFactory::createTreasure(type, &pos);
-        treasures.push_back(t);
+        int x = pos.getX();
+        int y = pos.getY();
+        unique_ptr<Position> p = make_unique<Position>(x, y);
+        unique_ptr<Item> itemPtr = ItemFactory::createItem(type, ItemType::Treasure, move(p));
+        treasures.push_back(unique_ptr<Treasure>(static_cast<Treasure *>(itemPtr.release())));
+        //treasures.push_back(ItemFactory::createTreasure(type, move(p)));
         map[pos.getY()][pos.getX()] = type;
     
         if (type == '9') { //if the generated treasure is dragon hoard 
-            DHoard *dh = static_cast <DHoard *>(t);
+            DHoard *dh = static_cast <DHoard *>(treasures.back().get());
             Position dragonPos = generateDragonPos(&pos);
-            enemies.push_back(new Dragon(&dragonPos, dh));
+            int x = dragonPos.getX();
+            int y = dragonPos.getY();
+            unique_ptr<Position> p = make_unique<Position>(x, y);
+            enemies.push_back(make_unique<Dragon> (move(p), dh));
             map[dragonPos.getY()][dragonPos.getX()] = 'D';
             dragonNum++;
         }
@@ -177,100 +176,170 @@ void Floor::spawnEnemies(int &dragonNum) {
     for (int i = 0; i < num; i++) {
         chamberID = 1 + rand() % 5;
         pos = getValidPos(chamberID);
-        enemies.push_back(EnemyFactory::createEnemy(type, &pos));
+        int x = pos.getX();
+        int y = pos.getY();
+        unique_ptr<Position> p = make_unique<Position>(x, y);
+        enemies.push_back(EnemyFactory::createEnemy(type, move(p)));
         map[pos.getY()][pos.getX()] = type;
     }
 }
 
 string Floor::usePotion(string dir) {
-    //drow can modify potion by 1.5
     Position *curPos = player->getPos();
     Position newPos = curPos->newPos(dir);
+    int x = newPos.getX();
+    int y = newPos.getY();
+    unique_ptr<Position> p = make_unique<Position>(x, y);
     double magnify = 1.0;
-    // drow's buff
-    if (player->getType() == "drow") {
+    // drow can modify potion effect by 1.5
+    if (player->getType() == "Drow") {
         magnify = 1.5;
     }
     char cell = map[newPos.getY()][newPos.getX()];
+    
     if (cell == '0') {
-        double newHP = player->getHp() + 10 * magnify;
-        player->modifyHp(static_cast<int>(newHP));
+        for (size_t i = 0; i < potions.size(); i++) {
+            if (potions[i]->getType() == "RH") {
+                potions[i]->affectPlayer(*player, magnify);
+                break;
+            }
+        }
         isPotionKnown[0] = true;
     } else if (cell == '1') {
-        double newAtk = player->getAtk() + 5 * magnify;
-        player->modifyAtk(static_cast<int>(newAtk));
+        for (size_t i = 0; i < potions.size(); i++) {
+            if (potions[i]->getType() == "BA") {
+                potions[i]->affectPlayer(*player, magnify);
+                break;
+            }
+        }
         isPotionKnown[1] = true;
     } else if (cell == '2') {
-        double newDef = player->getDef() + 5 * magnify;
-        player->modifyDef(static_cast<int>(newDef));
+        for (size_t i = 0; i < potions.size(); i++) {
+            if (potions[i]->getType() == "BD") {
+                potions[i]->affectPlayer(*player, magnify);
+                break;
+            }
+        }
         isPotionKnown[2] = true;
     } else if (cell == '3') {
-        double newHP = player->getHp() - 10 * magnify;
-        player->modifyHp(static_cast<int>(newHP));
+        for (size_t i = 0; i < potions.size(); i++) {
+            if (potions[i]->getType() == "PH") {
+                potions[i]->affectPlayer(*player, magnify);
+                break;
+            }
+        }
         isPotionKnown[3] = true;
     } else if (cell == '4') {
-        double newAtk = player->getAtk() - 5 * magnify;
-        player->modifyAtk(static_cast<int>(newAtk));
+        for (size_t i = 0; i < potions.size(); i++) {
+            if (potions[i]->getType() == "WA") {
+                potions[i]->affectPlayer(*player, magnify);
+                break;
+            }
+        }
         isPotionKnown[4] = true;
     } else if (cell == '5') {
-        double newDef = player->getDef() - 5 * magnify;
-        player->modifyDef(static_cast<int>(newDef));
+        for (size_t i = 0; i < potions.size(); i++) {
+            if (potions[i]->getType() == "WD") {
+                potions[i]->affectPlayer(*player, magnify);
+                break;
+            }
+        }
         isPotionKnown[5] = true;
     } else {
-        return "Potion not found";
+        return "";
     }
-    for (int i = 0; i < potions.size(); i++) {
+    for (size_t i = 0; i < potions.size(); i++) {
         if (*potions[i]->getPos() == newPos) {
             string type = potions[i]->getType();
-            Potion *tmp = potions[i];
             potions.erase(potions.begin() + i);
-            delete tmp;
-            modifyMap(newPos, curPos);
+            map[newPos.getY()][newPos.getX()] = '@';
+            map[curPos->getY()][curPos->getX()] = defaultMap[curPos->getY()][curPos->getX()];
+            player->setPos(move(p));
             return type;
         }
     }
     return "";
 } 
 
+void Floor::purchase(string dir) {
+    string potionKind;
+    Merchant *target;
+    Position *curPos = player->getPos();
+    Position newPos = curPos->newPos(dir);
+    char cell = map[newPos.getY()][newPos.getX()];
+    if (cell == 'M') {
+        string action;
+        for (size_t i = 0; i < enemies.size(); i++) {
+            if (*enemies[i]->getPos() == newPos) {
+                target = static_cast<Merchant *> (enemies[i].get());
+                break;
+            }
+        }
+        // print the function of each potion
+        target->printFunction();
+        // open store
+        while (1) {
+            target->printStore();
+            cin >> potionKind;
+            if (potionKind == "exit") { break; }
+            target->sell(potionKind, *player);
+            
+        }
+    } else {
+        cout << "There is no merchant aronnd! " << endl;
+    }
+}
+
 
 string Floor::attackDir(string dir) {
     Position *curPos = player->getPos();
     Position newPos = curPos->newPos(dir);
+    int x = newPos.getX();
+    int y = newPos.getY();
+    unique_ptr<Position> p = make_unique<Position>(x, y);
     char cell = map[newPos.getY()][newPos.getX()];
     if (cell == 'H' || cell == 'W' || cell == 'E' || cell == 'O' || cell == 'M' || cell == 'D' || cell == 'L') {
         string action;
-        for (int i = 0; i < enemies.size(); i++) {
-            if (enemies[i]->getPos() == &newPos) {
-                action = player->attackEnemy(enemies[i]);
+        for (size_t i = 0; i < enemies.size(); i++) {
+            if (*enemies[i]->getPos() == newPos) {
+                action = player->attackEnemy(enemies[i].get());
+                //merchants become hostile
+                if (enemies[i]->getType() == "Merchant") {
+                    if (this->isMNeutral) {
+                        this->isMNeutral = false;
+                        for (size_t k = 0; k < enemies.size(); k++) {
+                            if (enemies[k]->getType() == "Merchant") {
+                                enemies[k]->notNeutral();
+                            }
+                        }
+                    }
+                }
                 if (enemies[i]->getHp() <= 0) { //If this enemy dies...
-                    if (player->getType() == "goblin") { //if the PC is goblin, steal 5 golds
+                    if (player->getType() == "Goblin") { //if the PC is goblin, steal 5 golds
                         player->pickGold(5);
                     }
                     string enemyType = enemies[i]->getType();
-                    if (enemyType == "dragon") {
+                    if (enemyType == "Dragon") {
                         //free the dragon hoard
-                        Dragon *dragon = static_cast<Dragon *>(enemies[i]);
+                        Dragon *dragon = static_cast<Dragon *>(enemies[i].get());
                         dragon->freeHoard();
                         map[newPos.getY()][newPos.getX()] = defaultMap[newPos.getY()][newPos.getX()];
-                    } else if (enemyType == "merchant") {
+
+                    } else if (enemyType == "Merchant") {
                         //add a merchant hoard
-                        //merchants become hostile
-                        MHoard *mhoard = new MHoard(&newPos);
-                        treasures.push_back(mhoard);
+                        auto mhoard = make_unique<MHoard> (move(p));
+                        treasures.push_back(move(mhoard));
                         map[newPos.getY()][newPos.getX()] = '8';
-                        if (enemies[i]->getIsNeutral()) {
-                            for (int k = 0; k < enemies.size(); k++) {
-                                if (enemies[k]->getType() == "merchant") {
-                                    enemies[k]->notNeutral();
-                                }
-                            }
-                        }
-                    } else if (enemyType == "human") {
+
+                    } else if (enemyType == "Human") {
                         //add two normal
-                        Normal *hHoard = new Normal(&newPos, 4);
-                        treasures.push_back(hHoard);
+                        auto hHoard = make_unique<Normal>(move(p), 4);
+                        treasures.push_back(move(hHoard));
                         map[newPos.getY()][newPos.getX()] = '6';
+
                     } else {
+                        //drop either a small pile or normal pile of gold. 
+                        //This gold is immediately added to the player character’s total.
                         int random = rand() % 2;
                         if (random == 0) {
                             player->pickGold(1);
@@ -278,21 +347,19 @@ string Floor::attackDir(string dir) {
                             player->pickGold(2);
                         }
                         map[newPos.getY()][newPos.getX()] = defaultMap[newPos.getY()][newPos.getX()];
-                        //drop either a small pile or normal pile of gold (discussed below). 
-                        //This gold is immediately added to the player character’s total.
                     }
-                    Enemy *tmp = enemies[i];
                     enemies.erase(enemies.begin() + i);
-                    delete tmp;
                 }
             }
         }
-        if (player->getType() == "vampire" && cell == 'W')
-        {
+        if (player->getType() == "Vampire" && cell == 'W') { //vampire lose 5 hp when it attacks dwarf rather than gain
             player->modifyHp(player->getHp() - 5);
-        } else if (player->getType() == "vampire" && cell != 'L') {
+            action += "You are allergic to dwarves and lose 5 HP rather than gain. ";
+
+        } else if (player->getType() == "Vampire" && cell == 'L') { //vampire gains 5 hp when attacking enemies except for dwarf
             regainFive();
-        } else if (player->getType() == "vampire" && action != "You missed!") {
+            
+        } else if (player->getType() == "Vampire" && action != "You missed!") { // vampire gains 5 hp when attacking halfling successfully
             regainFive();
         }
         return action;
@@ -305,166 +372,189 @@ void Floor::regainFive() {
     player->modifyHp(player->getHp() + 5);
 }
 
-
-string Floor::sb() {
-    return "sb";
+string Floor::direction(string dir) {
+    if (dir == "we") {
+        return "West";
+    } else if (dir == "no") {
+        return "North";
+    } else if (dir == "so") {
+        return "South";
+    } else if (dir == "ea") {
+        return "East";
+    } else if (dir == "ne") {
+        return "Northeast";
+    } else if (dir == "nw") {
+        return "Northwest";
+    } else if (dir == "se") {
+        return "Southeast";
+    } else if (dir == "sw") {
+        return "Southwest";
+    } else {
+        return "Invalide dirction.";
+    }
 }
 
-
 string Floor::movePlayer(string dir) {
-    return "sb";
     string msg;
-    
-    /*Position *curPos = player->getPos();
-    cout << "sb";
+    Position *curPos = player->getPos();
     Position newPos = player->getPos()->newPos(dir);
+    int x = newPos.getX();
+    int y = newPos.getY();
+    unique_ptr<Position> p = make_unique<Position>(x, y);
     char cell = map[newPos.getY()][newPos.getX()];
-    cout << "here: " << cell << endl;
+
+    //check if there are potions surrounded
+    for (size_t i = 0; i < potions.size(); i++) {
+            if (potions[i]->playerWithinRange(p.get())) {
+                msg += seePotion(potions[i].get());
+            }
+    }
     
-	if (cell == '6' || cell == '7') { //small or normal hoard
-        msg = "PC moves " + dir;
+	if (cell == '6' || cell == '7' || cell == '8') { //small or normal hoard or merchant hoard
+        msg += "PC moves to " + direction(dir) + ". ";
         msg += pickGold(newPos);
-        modifyMap(newPos, curPos);
+        map[newPos.getY()][newPos.getX()] = '@';
+        map[curPos->getY()][curPos->getX()] = defaultMap[curPos->getY()][curPos->getX()];
+        player->setPos(move(p));
+
     } else if (cell == '9') { //dragon hoard
         //find that dragon hoard
-        for (int i = 0; i < treasures.size(); i++) {
+        for (size_t i = 0; i < treasures.size(); i++) {
             if (*treasures[i]->getPos() == newPos) {
-                DHoard *dh = static_cast <DHoard *>(treasures[i]);
-                msg = "PC moves " + dir;
-                modifyMap(newPos, curPos);
+                DHoard *dh = static_cast <DHoard *>(treasures[i].get());
                 if (!dh->getIsGuard()) { //if this hoard is not guarded
+                    msg += "PC moves to " + direction(dir) + ". ";
+                    map[newPos.getY()][newPos.getX()] = '@';
+                    map[curPos->getY()][curPos->getX()] = defaultMap[curPos->getY()][curPos->getX()];
+                    player->setPos(move(p));
                     msg += pickGold(newPos);
                 } else { //dragon will attack player
-                    msg += " and sees an guarded dragon hoard.";
-                   
+                    msg += "There is a guarded dragon hoard. Invalid move! ";
                 } 
             }
         }
     
     } else if (cell == '/') {
         if (level != 6) {
-            msg = "You enter Floor " + to_string(++level);
             initNext();
-        }   
-        msg = "You win!";
+            msg += "You enter Floor " + to_string(++level);
+            if (level == 6) return "You win!";
+            else return msg;
+        }  
         
     } else if (cell == '.' || cell == '+' || cell == '#') {
-        modifyMap(newPos, curPos);
-        msg = "PC moves " + dir;
-        for (int i = 0; i < potions.size(); i++) {
-            if (potions[i]->playerWithinRange(&newPos)) {
-                msg += seePotion(potions[i]);
-            }
-        } 
+        map[newPos.getY()][newPos.getX()] = '@';
+        map[curPos->getY()][curPos->getX()] = defaultMap[curPos->getY()][curPos->getX()];
+        msg += "PC moves " + direction(dir) + ". ";
+        player->setPos(move(p));
 
     } else {
         msg = "Invalid move.";
     }
 
-    */
-   //return msg;
+   return msg;
 }
 
 string Floor::pickGold(Position p) {
-    for (int i = 0; i < treasures.size(); i++) {
+    for (size_t i = 0; i < treasures.size(); i++) {
         if (*treasures[i]->getPos() == p) {
-            Treasure *tmp = treasures[i];
-            int amount = tmp->getValue();
+            int amount = treasures[i]->getValue();
             player->pickGold(amount);
             treasures.erase(treasures.begin() + i);
-            delete tmp;
-            return "and picked " + to_string(amount) + " golds.";
+            return "PC picked " + to_string(amount) + " golds. ";
         }
     }
     return "";
 }
 
-void Floor::modifyMap(Position newPos, Position *curPos) {
-    map[newPos.getY()][newPos.getX()] = '@';
-    map[curPos->getY()][curPos->getX()] = defaultMap[curPos->getY()][curPos->getX()];
-    player->setPos(&newPos);
-}
-
 string Floor::seePotion(Potion *p) {
-    string msg;
     string type = p->getType();
-    if(type == "RH"){
+    if (type == "RH"){
         if (isPotionKnown[0]){
-            msg = "You see a Restore Health potion. ";
+            return "You see a Restore Health potion. ";
         }
-   } else if (type == "BA"){
+    } else if (type == "BA"){
         if (isPotionKnown[1]){
-        msg = "You see a Boost potion. ";
+            return "You see a Boost potion. ";
         }
    } else if (type == "BD"){
         if (isPotionKnown[2]){
-        msg = "You see a Boost Defense potion. ";
+            return "You see a Boost Defense potion. ";
         }    
    } else if (type == "PH"){
         if (isPotionKnown[3]){
-        msg = "You see a Poison Health potion. ";
+            return "You see a Poison Health potion. ";
         }    
    } else if (type == "WA"){
         if (isPotionKnown[4]){
-        msg = "You see a Wound Attack potion. ";
+            return "You see a Wound Attack potion. ";
         }    
    } else if (type == "WD"){
         if (isPotionKnown[5]){
-        msg = "You see a Wound Defense potion. ";
+            return "You see a Wound Defense potion. ";
         }   
-   } else {
-        msg = "You see an unknown potion. ";   
-   }
-    return msg;
+   } 
+    return "You see an unknown potion. ";   
 }
 
 //random movement
 void Floor::randomMove() {
-    //按照pos顺序放到vector里
     sortEnemies();
-    //遍历vector， 判断每个enemy周围有没有player，如果有就不move
-    for (int i = 0; i < enemies.size(); i++) {
-        if(enemies[i]->getType() == "dragon") {
+    for (size_t i = 0; i < enemies.size(); i++) {
+        if(enemies[i]->getType() == "Dragon") {
             continue;
         }
+
         if (!enemies[i]->playerWithinRange(player->getPos())) {
+            Position newPos;
+            Position *curPos = enemies[i]->getPos();
+            int curX = curPos->getX();
+            int curY = curPos->getY();
+            int newX;
+            int newY;
             while (1) {
-                Position newPos = enemies[i]->move();
+                newPos = enemies[i]->move();
+                newX = newPos.getX();
+                newY = newPos.getY();
+                unique_ptr<Position> p = make_unique<Position>(newX, newY);
                 char c = map[newPos.getY()][newPos.getX()];
                 if (c == '.') {
-                    enemies[i]->setPos(&newPos);
+                    enemies[i]->setPos(move(p));
                     break;
                 }
             }
+            map[newY][newX] = map[curY][curX];
+            map[curY][curX] = '.';
         }
     }
 }
 
+// use insertion sort to sort enemies so that they attack player in a 'line-by-line' fashion
 void Floor::sortEnemies() {
     int i, j;
-    Enemy *key;
     for (i = 1; i < enemies.size(); i++) {
-        key = enemies[i];
+        auto key = move(enemies[i]);
         j = i - 1;
         while (j >= 0 && *key->getPos() < *enemies[j]->getPos()) {
-            enemies[j + 1] = enemies[j];
+            enemies[j + 1] = move(enemies[j]);
             j = j - 1;
         }
-        enemies[j + 1] = key;
+        enemies[j + 1] = move(key);
     }
 }
 
 string Floor::autoAttackPlayer() {
     string autoAttackLog = "";
-    //if player is near dragon hoards, change those dragons to hostile
-    for (int i = 0; i < treasures.size(); i++) {
+
+    //if player is near dragon hoards, change their guardian dragons to hostile
+    for (size_t i = 0; i < treasures.size(); i++) {
         if (treasures[i]->getType() == "dragon hoard") {
-            DHoard *dh = static_cast <DHoard *>(treasures[i]);
+            DHoard *dh = static_cast <DHoard *>(treasures[i].get());
             if (dh->playerWithinRange(player->getPos())) {
-                 for (int i = 0; i < enemies.size(); i++) {
-                        if (enemies[i]->getType() == "dragon") {
-                            if (*static_cast <Dragon *>(enemies[i])->getDHoard()->getPos() == *dh->getPos()) {
-                                Dragon *d = static_cast <Dragon *> (enemies[i]);
+                 for (size_t i = 0; i < enemies.size(); i++) {
+                        if (enemies[i]->getType() == "Dragon") {
+                            if (*static_cast <Dragon *>(enemies[i].get())->getDHoard()->getPos() == *dh->getPos()) {
+                                Dragon *d = static_cast <Dragon *> (enemies[i].get());
                                 d->notNeutral();
                             }
                             
@@ -474,26 +564,26 @@ string Floor::autoAttackPlayer() {
         }
     }
     
-    for (int i = 0; i < enemies.size(); i++) {
-        if (enemies[i]->getType() == "dragon") {
-            Dragon *d = static_cast <Dragon *>(enemies[i]);
+    for (size_t i = 0; i < enemies.size(); i++) {
+        if (enemies[i]->getType() == "Dragon") {
+            Dragon *d = static_cast <Dragon *>(enemies[i].get());
             if (d->playerWithinRange(player->getPos())) d->notNeutral(); //if player is near any dragon, change dragon to hostile
             if (!d->getIsNeutral()) {
-                autoAttackLog += d->attackPlayer(player);
+                autoAttackLog += d->attackPlayer(player.get());
                 d->setNeutral();
                 break;
             }
         }
         if (enemies[i]->playerWithinRange(player->getPos())) {
             if (!enemies[i]->getIsNeutral()) {
-                autoAttackLog += enemies[i]->attackPlayer(player);
+                autoAttackLog += enemies[i]->attackPlayer(player.get());
             }
-            return autoAttackLog;
         }
     }
-    return "";
+    return autoAttackLog;
 }
 
+// get a unoccupied position within certain chamber for an object to spawn
 Position Floor::getValidPos(int chamberID) {
     Position pos;
     while (1) {
@@ -505,9 +595,6 @@ Position Floor::getValidPos(int chamberID) {
     return pos;
 }
 
-Player *Floor::getPlayer() const{
-    return player;
-}
 
 void Floor::frozenEnemy() {
     if(isFrozen) {

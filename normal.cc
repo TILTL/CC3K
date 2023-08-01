@@ -1,14 +1,13 @@
 #include "normal.h"
 
-Normal::Normal(Position *pos) {
-    this->pos = pos;
+Normal::Normal(unique_ptr<Position> pos) {
+    this->pos = std::move(pos);
     this->type = "normal";
     this->value = 2;
-    //this->isGuard = false;
 } 
 
-Normal::Normal(Position *pos, int value) {
-    this->pos = pos;
+Normal::Normal(unique_ptr<Position> pos, int value) {
+    this->pos = std::move(pos);
     this->type = "merchant hoard";
     this->value = value;
 }

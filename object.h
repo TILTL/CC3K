@@ -2,20 +2,22 @@
 #define OBJECT_H
 
 #include <string>
+#include <memory>
 #include "position.h"
 
 using namespace std;
 
 class Object {
  protected:
-  Position *pos;
+  unique_ptr<Position> pos;
   string type;
  public:
-  virtual ~Object() = 0;
-  void setPos(Position *pos);
+  Object(): pos(make_unique<Position>()) {}
+  virtual ~Object() = default; 
+  void setPos(unique_ptr<Position> p);
   Position *getPos();
   string getType() const;
-  bool playerWithinRange(Position *playerPos);
+  bool playerWithinRange(const Position *playerPos);
 };
 
 #endif

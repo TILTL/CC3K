@@ -1,5 +1,4 @@
 #include "enemy.h"
-#include <cstdlib>
 
 using namespace std;
 
@@ -7,23 +6,19 @@ string Enemy::attackPlayer(Player *opponent) {
     double amount;
     string combatInfo;
 
-    // participator
     string attacker = this->type;
     string defender = opponent->getType();
-    // Atk
     int enemyAttack = this->atk;
-    // Def
     int pcDef = opponent->getDef();
-    // injure
+    
     if (rand() % 2 == 0) {
         combatInfo = attacker + " missed attack. ";
         return combatInfo;
     }
     amount = (100.0 / (100.0 + pcDef)) * enemyAttack;
     opponent->modifyHp(opponent->getHp() - amount);
-    // get log
-    combatInfo = attacker + " deals " + to_string(static_cast<int> (amount)) + " damage to PC. ";
 
+    combatInfo = attacker + " deals " + to_string(static_cast<int> (amount)) + " damage to PC. ";
     return combatInfo;
 }
 
@@ -56,4 +51,3 @@ bool Enemy::getIsNeutral() const{
 void Enemy::notNeutral() {
     this->isNeutral = false;
 }
-

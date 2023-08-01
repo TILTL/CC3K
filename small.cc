@@ -1,7 +1,7 @@
 #include "small.h"
 
-Small::Small(Position *pos) {
-    this->pos = pos;
+Small::Small(unique_ptr<Position> pos) {
+    this->pos = std::move(pos);
     this->type = "small";
     this->value = 1;
 } 

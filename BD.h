@@ -8,7 +8,9 @@
 
 class BD : public Potion {
  public:
-    BD(Position *pos);
+    BD(unique_ptr<Position> pos);
+    BD(int price);
+    void affectPlayer(Player &player, double magnify) override;
 };
 
 #endif

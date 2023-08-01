@@ -9,8 +9,8 @@ using namespace std;
 
 class Normal : public Treasure {
  public:
-    Normal(Position *pos);
-    Normal(Position *pos, int value);
+    Normal(unique_ptr<Position> pos);
+    Normal(unique_ptr<Position> pos, int value);
     ~Normal() {}
 };
 

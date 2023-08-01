@@ -9,7 +9,7 @@
 class Goblin : public Player {
  public:
     ~Goblin() {}
-    Goblin(int HP, int gold, Position *pos);
+    Goblin(int HP, int gold, unique_ptr<Position> pos);
 };
 
 #endif

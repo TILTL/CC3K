@@ -8,7 +8,9 @@
 
 class RH : public Potion {
  public:
-    RH(Position *pos);
+    RH(unique_ptr<Position> pos);
+    RH(int price);
+    void affectPlayer(Player &player, double magnify) override;
 };
 
 #endif

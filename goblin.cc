@@ -2,9 +2,9 @@
 
 using namespace std;
 
-Goblin::Goblin (int HP, int gold, Position *pos) {
-    this->type = "goblin";
-    this->pos = pos;
+Goblin::Goblin (int HP, int gold, unique_ptr<Position> pos) {
+    this->type = "Goblin";
+    this->pos = std::move(pos);
     this->hp = HP;
     this->atk = 15;
     this->def = 20;

@@ -9,11 +9,13 @@ using namespace std;
 
 
 class Potion : public Item {
-    //string potionType;
-    //Player *player;
+    protected:
+    int price;
  public:
     Potion() {}
     virtual ~Potion() = 0;
+    virtual void affectPlayer(Player &player, double magnify) = 0;
+    int getPrice();
 };
 
 #endif

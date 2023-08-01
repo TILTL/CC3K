@@ -12,7 +12,7 @@
 
 class PlayerFactory {
  public:
-    static Player *createPlayer(char race, Position *pos);
+    static unique_ptr<Player> createPlayer(char race, unique_ptr<Position> pos);
 };
 
 

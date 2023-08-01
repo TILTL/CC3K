@@ -10,7 +10,6 @@ using namespace std;
 class Item : public Object{
  public:
     virtual ~Item() = 0;
-    bool withinOne(Player *p);
 };
 
 #endif

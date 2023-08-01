@@ -2,11 +2,11 @@
 
 using namespace std;
 
-Human::Human(Position *pos) {
-    this->type = "human";
+Human::Human(unique_ptr<Position> pos) {
+    this->type = "Human";
     this->hp = 140;
     this->atk = 20;
     this->def = 20;
-    this->pos = pos;
+    this->pos = std::move(pos);
     this->isNeutral = false;
 }

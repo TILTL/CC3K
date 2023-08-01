@@ -6,13 +6,15 @@ int Player::getGold() const { return gold; }
 
 int Player::getMaxHp() const { return maxHp; }
 
-void Player::pickGold(int amount)  { gold += amount; }
+void Player::pickGold(int amount)  { this->gold += amount; }
+
+void Player::spendGold(int amount) { this->gold -= amount; }
 
 string Player::attackEnemy(Enemy *opponent) {
-    if (opponent->getType() == "halfing") {
+    if (opponent->getType() == "Halfing") {
         int i = rand() % 2;
         if (i == 0) {
-            return "You missed!";
+            return "You missed! ";
         }
     }
     double amount;
@@ -25,8 +27,7 @@ string Player::attackEnemy(Enemy *opponent) {
     int oppoDef = opponent->getDef();
     // injure
     amount = (100.0 / (100.0 + oppoDef)) * pcAttack;
-    opponent->modifyHp(amount);
-    // get log
+    opponent->modifyHp(opponent->getHp() - amount);
     combatInfo = "PC deals " + to_string(static_cast<int> (amount)) + " damage to " + defender + " (" + to_string(opponent->getHp()) + " HP). ";
 
     return combatInfo;
@@ -44,7 +45,9 @@ void Player::modifyMaxHp(int newMax) {
 }
 
 void Player::modifyHp(int newHp) {
-    if (newHp <= maxHp) {
+    if (newHp < 0) {
+        this->hp = 0;
+    } else if (newHp <= maxHp) {
         this->hp= newHp;
     } else {
         this->hp= maxHp;

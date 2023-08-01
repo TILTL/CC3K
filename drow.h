@@ -8,7 +8,7 @@
 
 class Drow : public Player {
  public:
-    Drow(int HP, int gold, Position *pos);
+    Drow(int HP, int gold, unique_ptr<Position> pos);
     ~Drow() {}
 };
 

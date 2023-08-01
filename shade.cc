@@ -2,9 +2,9 @@
 
 using namespace std;
 
-Shade::Shade(int HP, int gold, Position *pos) {
-    this->type = "shade";
-    this->pos = pos;
+Shade::Shade(int HP, int gold, unique_ptr<Position> pos) {
+    this->type = "Shade";
+    this->pos = std::move(pos);
     this->hp = HP;
     this->atk = 25;
     this->def = 25;
@@ -13,5 +13,3 @@ Shade::Shade(int HP, int gold, Position *pos) {
     this->defaultAtk = 25;
     this->defaultDef = 25;
 }
-
-    

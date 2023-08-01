@@ -1,11 +1,11 @@
 #include "dragon.h"
 
-Dragon::Dragon(Position *pos, DHoard *dhoard) {
-    this->type = "dragon";
+Dragon::Dragon(unique_ptr<Position> pos, DHoard *dhoard) {
+    this->type = "Dragon";
     this->hp = 150;
     this->atk = 20;
     this->def = 20;
-    this->pos = pos;
+    this->pos = std::move(pos);
     this->isNeutral = true;
     this->dhoard = dhoard;
 }

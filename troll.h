@@ -9,7 +9,7 @@
 class Troll : public Player {
  public:
     ~Troll() {}
-    Troll(int HP, int gold, Position *pos);
+    Troll(int HP, int gold, unique_ptr<Position> pos);
 };
 
 #endif

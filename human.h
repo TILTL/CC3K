@@ -7,7 +7,7 @@
 
 class Human : public Enemy {
  public:
-    Human(Position *pos);
+    Human(unique_ptr<Position> pos);
     ~Human() {}
 };
 

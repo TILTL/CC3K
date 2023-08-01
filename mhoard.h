@@ -10,7 +10,7 @@ using namespace std;
 class MHoard : public Treasure {
  public:
     ~MHoard() {}
-    MHoard(Position *p);
+    MHoard(unique_ptr<Position> pos);
 };
 
 #endif

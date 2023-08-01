@@ -2,9 +2,9 @@
 
 using namespace std;
 
-Troll::Troll (int HP, int gold, Position *pos) {
-    this->type = "troll";
-    this->pos = pos;
+Troll::Troll (int HP, int gold, unique_ptr<Position> pos) {
+    this->type = "Troll";
+    this->pos = std::move(pos);
     this->hp = HP;
     this->atk = 25;
     this->def = 15;

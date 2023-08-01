@@ -4,15 +4,21 @@
 #include "enemy.h"
 #include "object.h"
 #include "character.h"
+#include "itemfactory.h"
+#include <iostream>
+#include <map>
 
 using namespace std;
 
 class Merchant : public Enemy {
-    //bool isHostile;
+    map<unique_ptr<Potion>, int> store;
  public:
-    Merchant(Position *pos);
-    //void notNeutral();
+    Merchant(unique_ptr<Position> pos);
     ~Merchant() {}
+    void sell(string p, Player &player);
+    void printStore() const;
+    void printData(Player &p) const;
+    void printFunction() const;
 };
 
 #endif

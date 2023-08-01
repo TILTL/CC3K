@@ -1,7 +1,7 @@
 #include "dhoard.h"
 
-DHoard::DHoard(Position *pos) {
-    this->pos = pos;
+DHoard::DHoard(unique_ptr<Position> pos) {
+    this->pos = std::move(pos);
     this->type = "dragon hoard";
     this->value = 6;
     this->isGuard = true;

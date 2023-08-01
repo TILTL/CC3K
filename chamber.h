@@ -6,10 +6,8 @@
 class Position;
 
 class Chamber {
-	
-
-public:
-int chamberID;
+ public:
+	int chamberID; 
 	int rowStart;
 	int rowEnd;
 	int colStart;

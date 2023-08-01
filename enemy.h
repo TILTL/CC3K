@@ -3,6 +3,8 @@
 
 #include "player.h"
 #include "character.h"
+#include <cstdlib>
+#include <iostream>
 
 using namespace std;
 
@@ -10,14 +12,12 @@ class Player;
 
 class Enemy : public Character {
  protected:
-    bool isNeutral;
-    //int chamberID;
+   bool isNeutral;
  public:
-    virtual string attackPlayer(Player *opponent);
-    bool getIsNeutral() const;
-    Position move();
-    void notNeutral();
-    //virtual void notGuard();
+   virtual string attackPlayer(Player *opponent);
+   bool getIsNeutral() const;
+   Position move();
+   void notNeutral();
 };
 
 #endif

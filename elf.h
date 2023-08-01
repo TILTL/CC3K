@@ -8,9 +8,8 @@
 
 class Elf : public Enemy {
  public:
-    Elf(Position *pos);
+    Elf(unique_ptr<Position> pos);
     ~Elf() {}
-    //string attackPlayerX2(Player *opponent);
     string attackPlayer(Player *opponent) override;
 };
     

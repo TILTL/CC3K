@@ -12,11 +12,10 @@ class DHoard : public Treasure {
  protected:
     bool isGuard;
  public:
-    DHoard(Position *pos);
+    DHoard(unique_ptr<Position> pos);
     bool getIsGuard();
     void freeGuard();
     ~DHoard() {}
-    //DHoard();
 };
 
 #endif

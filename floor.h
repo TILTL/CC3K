@@ -30,35 +30,36 @@
 #include "itemfactory.h"
 #include "enemyfactory.h"
 #include <string>
+#include <iostream>
 #include <sstream>
 #include <fstream>
 #include <cstdlib>
+#include <memory>
 
 using namespace std;
 
 class Position;
 
 class Floor {
-    //bool meetStair = false;
     char defaultMap[25][79];
-    Player *player;
-    vector<Enemy *> enemies;
-    vector<Potion *> potions;
-    bool isPotionKnown[5];
-    vector<Treasure *> treasures;
-    vector<Chamber *> chambers;
+    vector<unique_ptr<Enemy>> enemies;
+    vector<unique_ptr<Potion>> potions;
+    bool isPotionKnown[6];
+    vector<unique_ptr<Treasure>> treasures;
+    vector<unique_ptr<Chamber>> chambers;
     bool isFrozen = false;
 
  public:
     Floor();
     ~Floor();
+    unique_ptr<Player> player;
+    bool isMNeutral = true;
     int level = 1;
     char map[25][79];
-    friend class Enemy;
     void initMap(string file);
     void redrawMap(); //redraw the map when enter a new floor
-    void modifyMap(Position newPos, Position *curPos);
     void initFloor(char race); //spawn player, stair, items, enemies
+    void clearFloor();
     void initNext();
     void generateChamber();
     void spawnPlayer(char race, int &playerChamberID);
@@ -69,17 +70,17 @@ class Floor {
     string pickGold(Position p);
     string seePotion(Potion *p);
     string usePotion(string dir);
+    void purchase(string dir); // new ---------------------store---------------------
     void randomMove();
     void sortEnemies();
     string attackDir(string dir);
     string autoAttackPlayer();
     Position getValidPos(int chamberID);
     Position generateDragonPos(Position *dhPos);
-    Player *getPlayer() const;
     void regainFive();
     void frozenEnemy();
     bool getIsFrozen() const;
-    string sb();
+    string direction(string dir);
 };
 
 #endif

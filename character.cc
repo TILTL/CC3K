@@ -18,6 +18,9 @@ void Character::modifyDef(int newDef) {
     else def = newDef; 
 }
 
-void Character::modifyHp(int newHp) { hp = newHp; }
+void Character::modifyHp(int newHp) { 
+    if (newHp < 0) hp = 0;
+    else hp = newHp;
+}
 
 Character::~Character() {}

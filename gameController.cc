@@ -15,83 +15,95 @@ void GameController::start() {
             cout << "Invalide race, choose again!" << endl;
         }
     }
-    display->printMap(floor);
     floor->initFloor(race);
-    display->printPanel(floor);
 
     // laying out the map, spawn all elements in order
     display->setAction("Player character has spawned.");
-    display->printMap(floor);
-    display->printPanel(floor);
-
+    display->printMap(floor.get());
+    display->printPanel(floor.get());
+    
 
     // input
     string input;
     while(cin >> input) {
         display->setAction("");
 
-        //检查enemy周围有没有player
-        // 整理所有的message（PC攻击敌人+敌人攻击PC），然后更新到action里面
-       
-        readCommand(input);
+        readCommand(input); //cope with commands
+
         if (this->status == "restart" || this->status == "quit") {
             break;
         }
-        if (!this->getFloor()->getIsFrozen()) {
-             floor->autoAttackPlayer();
-             floor->randomMove();
+        if (canRandomMove && !floor->getIsFrozen()) {
+            string msg = display->getAction();
+            display->setAction(msg + floor->autoAttackPlayer());
+            floor->randomMove();
         }
-        if (floor->getPlayer()->getHp() <= 0) {
+        if (floor->player->getHp() <= 0) {
             cout << "You died!" << endl;
-            status = "die";
+            this->status = "die";
+            display->printMap(floor.get());
+            display->printPanel(floor.get());
             break;
         }
-        if (this->getFloor()->level == 6) {
-            this->status == "win";
+        if (floor->level == 6) {
+            this->status = "win";
             break;
         }
-        display->printMap(floor);
-        display->printPanel(floor);
+        display->printMap(floor.get());
+        display->printPanel(floor.get());
     }
 }
 
 void GameController::readCommand(string input) {
-    //no,so,ea,we,ne,nw,se,sw -> move player
-    //u direction -> take potion
-    //a direction -> attack enemy
-    //f -> stop enemy moving
-    //r -> restart, initDisplay, initFloor, select race
-
-    if (validDirection(input)) { //player moves
-        //cout << input << endl;
-        cout << floor->sb();
-        //display->setAction(floor->movePlayer(input));
-    } else if (input == "u") { // uses the potion indicated by the direction (e.g. no, so, ea).
+    canRandomMove = true;
+    if (input == "u") { // uses the potion indicated by the direction (e.g. no, so, ea).
         string dir;
         cin >> dir;
         if (validDirection(dir)) {
             string potionType = floor->usePotion(dir);
             if (potionType != "") {
-                display->setAction("Player PC uses" + potionType + ".");
+                display->setAction("PC uses " + potionType + ". ");
             } else {
                 display->setAction("No valid potion.");
+                canRandomMove = false;
             }
         } else {
             display->setAction("Invalid direction.");
+            canRandomMove = false;
         }
+
+    } else if (validDirection(input)) { //player moves
+        display->setAction(floor->movePlayer(input));
 
     } else if (input == "a") { //attack player indicated by direction
         string dir;
         cin >> dir;
         if (validDirection(dir)) {
-            display->setAction(floor->attackDir(dir));
+            string note =floor->attackDir(dir);
+            display->setAction(note);
+            if (note == "Enemy not found.") {
+                canRandomMove = false;
+            }
         } else {
             display->setAction("Invalid direction.");
+            canRandomMove = false;
         }
 
     } else if (input == "f") {
-        this->getFloor()->frozenEnemy();
-        
+        this->floor->frozenEnemy();
+        if (floor->getIsFrozen()) {
+            display->setAction("Enemies are frozened. ");
+        } else {
+            display->setAction("Enemies are freed. ");
+
+        }
+
+    } else if (input == "b") {
+        string dir;
+        cin >> dir;
+        this->floor->purchase(dir);
+        canRandomMove = false;
+
     } else if (input == "r") {
         this->status = "restart";
 
@@ -100,14 +112,11 @@ void GameController::readCommand(string input) {
 
     } else {
         //invalid input
-        display->setAction("Invalid input, please try again.");
+        display->setAction("Invalid input, please try again. ");
+        canRandomMove = false;
         return;
     }
-    string msg = display->getAction();
-    display->setAction(msg + floor->autoAttackPlayer());
-    // buff
-    // troll
-    if (floor->getPlayer()->getType() == "troll") {
+    if (floor->player->getType() == "Troll") {
         floor->regainFive();
     }
 }
@@ -117,13 +126,13 @@ bool GameController::validDirection(string input) const {
 }
 
 Floor *GameController::getFloor() const{
-    return floor;
+    return floor.get();
+}
+
+Display *GameController::getDisplay() const {
+    return display.get();
 }
 
 string GameController::getStatus() const {
     return status;
-}
-
-Display *GameController::getDisplay() const {
-    return display;
 }

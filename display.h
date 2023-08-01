@@ -9,17 +9,17 @@
 using namespace std;
 
 class Display {
-    Floor *floor;
     string action = "Welcome! ";
  public:
-    Display(): floor(new Floor) {}
+    Display(){}
     void printMap(Floor *floor) const;
-    void printPanel(Floor *floor);
-    void printPCInfo();
-    void printLose();
-    void printWin();
+    void printPanel(Floor *floor) const;
+    void printPCInfo() const;
+    void printLose() const;
+    void printWin() const;
     string getAction() const;
     void setAction(string ac);
+    ~Display() {}
 };
 
 #endif

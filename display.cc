@@ -1,10 +1,8 @@
 #include "display.h"
 
 using namespace std;
-//如果是invalid input  action = “”
-//每次打印完action 初始化action = “”
 
-void Display::printPCInfo() {
+void Display::printPCInfo() const{
     cout << "Please choose your race:" << endl;
     cout << "(s) for Shade  (125 HP, 25 Atk, 25 Def)" << endl;
     cout << "(d) for Drow (150 HP, 25 Atk , 15 Def, all potions have their effect magnified by 1.5)" << endl;
@@ -18,22 +16,29 @@ void Display::printMap(Floor *floor) const {
         for (int j = 0; j < 79; j++) {
             char cell = floor->map[i][j];
             if ((cell >= '0') && (cell < '6')) {
-                cout << "P";
+                cout << "\033[32m" << "P";
             } else if ((cell >= '6') && (cell <= '9')) {
-                cout << "G";
+                cout << "\033[33m" << "G";
+            } else if ((cell == '@') || (cell == '/')){
+                cout << "\033[34m" << cell;
+            } else if ((cell == 'H') || (cell =='W') || (cell =='E') || (cell =='O') || (cell =='M') || (cell =='D') || (cell =='L')) {
+                cout << "\033[31m" << cell;
+            } else if ((cell == '#') || (cell == '-') || (cell == '|')) {
+                cout << "\033[1;30m" << cell;
             } else {
-                cout << cell;
+                 cout << "\033[0m" << cell;
             }
         }
-        cout << endl;
+        std::cout << "\033[0m" << std::endl;
     }
 }
 
-void Display::printPanel(Floor *floor) {
-    Player *p = floor->getPlayer();
+
+void Display::printPanel(Floor *floor) const{
+    Player *p = floor->player.get();
     cout << "Race: " << p->getType();
     cout << " Gold: " << p->getGold();
-    cout << "                                                   ";
+    cout << "                                        ";
     cout << "Floor " << to_string(floor->level) << endl;
     cout << "HP: " << p->getHp() << endl;
     cout << "Atk: " << p->getAtk() << endl;
@@ -41,11 +46,27 @@ void Display::printPanel(Floor *floor) {
     cout << "Action: " << action << endl;
 }
 
-void Display::printLose() {
-    cout << "Loose!" << endl;
+void Display::printLose() const{
+    cout << endl;
+    cout << endl;
+    cout << "L       OOO   SSSSSS  EEEEEE" << endl;
+    cout << "L     O     O S       E    " << endl;
+    cout << "L     O     O SSSSSS  EEEEE" << endl;
+    cout << "L     O     O      S  E    " << endl;
+    cout << "LLLLL   OOO   SSSSSS  EEEEEE" << endl;
+    cout << endl;
+    cout << endl;
 }
-void Display::printWin() {
-    cout << "Win!" << endl;
+void Display::printWin() const{
+    cout << endl;
+    cout << endl;
+    cout << "W     W IIIII N   N" << endl;
+    cout << "W     W   I   NN  N" << endl;
+    cout << "W  W  W   I   N N N" << endl;
+    cout << " W W W    I   N  NN" << endl;
+    cout << "  W W   IIIII N   N" << endl;
+    cout << endl;
+    cout << endl;
 }
 
 string Display::getAction() const {

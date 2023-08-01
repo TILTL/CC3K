@@ -1,7 +1,7 @@
 #include "mhoard.h"
  
-MHoard::MHoard(Position *p) {
-    this->pos = pos;
-    this->type = "mhoard";
+MHoard::MHoard(unique_ptr<Position> pos) {
+    this->pos = std::move(pos);
+    this->type = "merchant hoard";
     this->value = 4;
 }

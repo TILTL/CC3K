@@ -8,7 +8,7 @@
 
 class Halfling : public Enemy {
  public:
-    Halfling(Position *pos);
+    Halfling(unique_ptr<Position> pos);
     ~Halfling() {}
 };
 

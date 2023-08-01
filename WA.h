@@ -8,7 +8,9 @@
 
 class WA : public Potion {
  public:
-    WA(Position *pos);
+    WA(unique_ptr<Position> pos);
+    WA(int price);
+    void affectPlayer(Player &player, double magnify) override;
 };
 
 #endif

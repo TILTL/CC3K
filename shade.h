@@ -9,7 +9,7 @@ using namespace std;
 
 class Shade : public Player {
  public:
-    Shade(int HP, int gold, Position *pos);
+    Shade(int HP, int gold, unique_ptr<Position> pos);
     ~Shade() {}
 };
 

@@ -2,9 +2,9 @@
 
 using namespace std;
 
-Vampire::Vampire(int HP, int gold, Position *pos) {
-    this->type = "vampire";
-    this->pos = pos;
+Vampire::Vampire(int HP, int gold, unique_ptr<Position> pos) {
+    this->type = "Vampire";
+    this->pos = std::move(pos);
     this->hp = HP;
     this->atk = 25;
     this->def = 25;

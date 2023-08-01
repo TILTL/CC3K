@@ -13,7 +13,7 @@
 
 class EnemyFactory {
  public:
-    static Enemy *createEnemy(char &type, Position *pos);
+    static unique_ptr<Enemy> createEnemy(char &type, unique_ptr<Position> pos);
 };
 
 #endif

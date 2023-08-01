@@ -20,6 +20,7 @@ class Player : public Character {
     int getMaxHp() const;
     string attackEnemy(Enemy *opponent);
     void pickGold(int amount);
+    void spendGold(int amount);
     int getDefaultAtk();
     int getDefaultDef();
     void modifyMaxHp(int newMax);

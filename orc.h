@@ -10,7 +10,7 @@ using namespace std;
 
 class Orc : public Enemy {
  public:
-    Orc(Position *pos);
+    Orc(unique_ptr<Position> pos);
     ~Orc() {}
     string attackPlayer(Player *opponent) override;
 };

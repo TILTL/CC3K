@@ -11,9 +11,8 @@ using namespace std;
 class Dragon : public Enemy {
     DHoard *dhoard;
  public:
-    Dragon(Position *pos, DHoard *dhoard);
+    Dragon(unique_ptr<Position> pos, DHoard *dhoard);
     ~Dragon() {}
-    //char getType() override;
     void freeHoard();
     DHoard *getDHoard() const;
     void setNeutral();
