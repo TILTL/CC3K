@@ -1,5 +1,5 @@
 CXX = g++-11
-CXXFLAGS = -std=c++20 -Wall -MMD -Werror=vla
+CXXFLAGS = -std=c++20 -Wall -MMD -Werror=vla -g
 SRCS = $(shell find . -type f -name "*.cc")
 OBJECTS = ${SRCS:.cc=.o}
 DEPENDS = ${OBJECTS:.o=.d}
@@ -15,4 +15,5 @@ ${EXEC}: ${OBJECTS}
 -include ${DEPENDS}
 
 clean:
-	rm -rf ${DEPENDS} ${OBJECTS} ${EXEC}
+	rm -rf ${DEPENDS} ${OBJECTS} ${EXE}
+

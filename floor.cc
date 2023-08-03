@@ -261,9 +261,10 @@ string Floor::usePotion(string dir) {
     return "";
 } 
 
-void Floor::purchase(string dir) {
+string Floor::purchase(string dir) {
+    string msg;
     string potionKind;
-    Merchant *target;
+    Merchant *targetMerchant;
     Position *curPos = player->getPos();
     Position newPos = curPos->newPos(dir);
     char cell = map[newPos.getY()][newPos.getX()];
@@ -271,23 +272,31 @@ void Floor::purchase(string dir) {
         string action;
         for (size_t i = 0; i < enemies.size(); i++) {
             if (*enemies[i]->getPos() == newPos) {
-                target = static_cast<Merchant *> (enemies[i].get());
+                targetMerchant = static_cast<Merchant *> (enemies[i].get());
                 break;
             }
         }
         // print the function of each potion
-        target->printFunction();
+        targetMerchant->printFunction();
         // open store
         while (1) {
-            target->printStore();
+            targetMerchant->printStore(*player);
             cin >> potionKind;
-            if (potionKind == "exit") { break; }
-            target->sell(potionKind, *player);
-            
+            if (potionKind == "exit") {
+                msg = "You leave the store. ";
+                break;
+            }
+            string purchaseState = targetMerchant->sell(potionKind, *player);
+            if (purchaseState == "error purchasing") {
+                cout << "Invalid potion, try again! " << endl;
+            }
         }
+        msg = "trade with the Merchant.";
     } else {
-        cout << "There is no merchant aronnd! " << endl;
+        msg = "There is no merchant around! ";
     }
+
+    return msg;
 }
 
 
@@ -315,6 +324,7 @@ string Floor::attackDir(string dir) {
                     }
                 }
                 if (enemies[i]->getHp() <= 0) { //If this enemy dies...
+                    action += "You have slained an enmey! ";
                     if (player->getType() == "Goblin") { //if the PC is goblin, steal 5 golds
                         player->pickGold(5);
                     }

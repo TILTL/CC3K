@@ -20,7 +20,7 @@ string Elf::attackPlayer(Player *opponent) {
     int enemyAttack = this->atk;
     // Def
     int pcDef = opponent->getDef();
-    if (opponent->getType() == "Drow") {
+    if (opponent->getType() == "Drow") { //elf attacks player twice, expect for drow
         numAttack = 1;
     }
     if (numAttack == 2) {

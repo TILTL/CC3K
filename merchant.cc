@@ -17,17 +17,20 @@ Merchant::Merchant(unique_ptr<Position> pos) {
     }
 }
 
-void Merchant::sell(string p, Player &player) {
+string Merchant::sell(string p, Player &player) {
     double magnify = 1.0;
     if (player.getType() == "Drow") {
         magnify = 1.5;
     }
     for (map<unique_ptr<Potion>, int>::iterator it = store.begin(); it != store.end(); ++it) {
         if (p == it->first.get()->getType()) {
+            // the potion is found
             int price = it->first.get()->getPrice();
             if (player.getGold() < price) {
+                // unenough money
                 cout << "Not sufficient gold! Choose another potion or exit." << endl;
             } else if (it->second > 0) {
+                // purchase successfully
                 it->first.get()->affectPlayer(player, magnify);
                 player.spendGold(price);
                 it->second -= 1;
@@ -37,32 +40,27 @@ void Merchant::sell(string p, Player &player) {
                 cout << "You bought a " << p << endl;
                 printData(player);
             }
-            break;
+            return "finished purchasing";
         }
     }
+    return "error purchasing";
 }
 
-void Merchant::printStore() const {
+void Merchant::printStore(Player &p) const {
     cout << endl;
-    cout << "---------store---------" << endl;
+    cout << "Your Gold: " << p.getGold() << endl;
+    cout << "+--------STORE--------+" << endl;
     for (map<unique_ptr<Potion>, int>::const_iterator it = store.begin(); it != store.end(); ++it) {
-        cout << "    ";
-        if (it->first.get() != nullptr) {
-            cout << it->first.get()->getType() << " : $" << it->first.get()->getPrice() << " X " << it->second;
-        } else {
-            cout << "empty";
-        }
-        cout << "    " << endl;
+        cout << "      " << it->first.get()->getType() << " : $" << it->first.get()->getPrice() << " X " << it->second << endl;
     }
-    cout << "-----------------------" << endl;
+    cout << "+---------------------+" << endl;
     cout << endl;
     cout << "(exit) to leave the store." << endl;
 }
 
 void Merchant::printData(Player &p) const {
     cout << endl;
-    cout << "Race: " << p.getType();
-    cout << " Gold: " << p.getGold() << endl;
+    cout << "Race: " << p.getType() << endl;
     cout << "HP: " << p.getHp() << endl;
     cout << "Atk: " << p.getAtk() << endl;
     cout << "Def: " << p.getDef() << endl;

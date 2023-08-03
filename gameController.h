@@ -11,13 +11,13 @@
 using namespace std;
 
 class GameController {
-   unique_ptr<Floor> floor;
+  unique_ptr<Floor> floor;
   unique_ptr<Display> display;
-   string status;
-   bool canRandomMove = true;
+  string status;
+  bool isValidInput = true;
  
  public:
-   GameController(): floor(new Floor), display(new Display) {}
+   GameController(): floor(make_unique<Floor>()), display(make_unique<Display>()) {}
    void start(); 
    void readCommand(string input); 
    bool validDirection(string input) const;

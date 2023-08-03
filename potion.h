@@ -15,7 +15,7 @@ class Potion : public Item {
     Potion() {}
     virtual ~Potion() = 0;
     virtual void affectPlayer(Player &player, double magnify) = 0;
-    int getPrice();
+    int getPrice() const;
 };
 
 #endif

@@ -14,4 +14,3 @@ void DHoard::freeGuard() {
 bool DHoard::getIsGuard() {
     return this->isGuard;
 }
-

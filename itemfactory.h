@@ -20,15 +20,11 @@ enum class ItemType {
 };
 
 class ItemFactory {
-    //static char itemTypes[10];
-    
  public:
     ItemFactory();
     ~ItemFactory() {}
     static unique_ptr<Item> createItem(char &type, ItemType itemType, std::unique_ptr<Position> pos);
-    //static unique_ptr<Potion> createPotion(char &type, unique_ptr<Position> pos);
     static unique_ptr<Potion> createPotion(int price, int typeIdx);
-    //static unique_ptr<Treasure> createTreasure(char &type, unique_ptr<Position> pos);
 };
 
 #endif

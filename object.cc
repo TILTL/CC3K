@@ -21,4 +21,3 @@ bool Object::playerWithinRange(const Position *playerPos) {
 string Object::getType() const {
 	return this->type;
 }
-

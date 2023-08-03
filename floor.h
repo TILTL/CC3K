@@ -70,7 +70,7 @@ class Floor {
     string pickGold(Position p);
     string seePotion(Potion *p);
     string usePotion(string dir);
-    void purchase(string dir); // new ---------------------store---------------------
+    string purchase(string dir); // new ---------------------store---------------------
     void randomMove();
     void sortEnemies();
     string attackDir(string dir);

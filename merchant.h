@@ -15,8 +15,8 @@ class Merchant : public Enemy {
  public:
     Merchant(unique_ptr<Position> pos);
     ~Merchant() {}
-    void sell(string p, Player &player);
-    void printStore() const;
+    string sell(string p, Player &player);
+    void printStore(Player &p) const;
     void printData(Player &p) const;
     void printFunction() const;
 };

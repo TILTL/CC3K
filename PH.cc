@@ -15,4 +15,3 @@ void PH::affectPlayer(Player &player, double magnify) {
     double newHP = player.getHp() - 10 * magnify;
     player.modifyHp(static_cast<int>(newHP));
 }
-

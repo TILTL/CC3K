@@ -4,4 +4,4 @@ Potion:: ~Potion() {}
 
 void Potion::affectPlayer(Player &player, double magnify) {}
 
-int Potion::getPrice() { return price; }
+int Potion::getPrice() const { return price; }

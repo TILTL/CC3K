@@ -11,8 +11,11 @@ void GameController::start() {
         cin >> race;
         if(race == 's' || race == 'd' || race == 'v' || race == 'g' || race == 't') {
             break;
+        } else if (race == 'q') {
+            this->status = "quit";
+            return;
         } else {
-            cout << "Invalide race, choose again!" << endl;
+            cout << "Invalid race, choose again!" << endl;
         }
     }
     floor->initFloor(race);
@@ -33,12 +36,22 @@ void GameController::start() {
         if (this->status == "restart" || this->status == "quit") {
             break;
         }
-        if (canRandomMove && !floor->getIsFrozen()) {
+        if (isValidInput && !floor->getIsFrozen()) {
             string msg = display->getAction();
             display->setAction(msg + floor->autoAttackPlayer());
             floor->randomMove();
         }
+        
+        if (floor->player->getType() == "Troll" && isValidInput) {
+            if (floor->player->getHp() != floor->player->getMaxHp()) {
+                floor->regainFive();
+                string msg = display->getAction();
+                display->setAction(msg + "Player regain hp. ");
+            }
+        }
+
         if (floor->player->getHp() <= 0) {
+            floor->player->modifyHp(0);
             cout << "You died!" << endl;
             this->status = "die";
             display->printMap(floor.get());
@@ -55,7 +68,7 @@ void GameController::start() {
 }
 
 void GameController::readCommand(string input) {
-    canRandomMove = true;
+    isValidInput = true;
     if (input == "u") { // uses the potion indicated by the direction (e.g. no, so, ea).
         string dir;
         cin >> dir;
@@ -65,15 +78,22 @@ void GameController::readCommand(string input) {
                 display->setAction("PC uses " + potionType + ". ");
             } else {
                 display->setAction("No valid potion.");
-                canRandomMove = false;
+                isValidInput = false;
+                return;
             }
         } else {
             display->setAction("Invalid direction.");
-            canRandomMove = false;
+            isValidInput = false;
+            return;
         }
 
     } else if (validDirection(input)) { //player moves
-        display->setAction(floor->movePlayer(input));
+        string ac = floor->movePlayer(input);
+        display->setAction(ac);
+        if (ac == "Invalid move.") {
+            isValidInput = false;
+            return;
+        }
 
     } else if (input == "a") { //attack player indicated by direction
         string dir;
@@ -82,11 +102,13 @@ void GameController::readCommand(string input) {
             string note =floor->attackDir(dir);
             display->setAction(note);
             if (note == "Enemy not found.") {
-                canRandomMove = false;
+                isValidInput = false;
+                return;
             }
         } else {
             display->setAction("Invalid direction.");
-            canRandomMove = false;
+            isValidInput = false;
+            return;
         }
 
     } else if (input == "f") {
@@ -101,23 +123,21 @@ void GameController::readCommand(string input) {
     } else if (input == "b") {
         string dir;
         cin >> dir;
-        this->floor->purchase(dir);
-        canRandomMove = false;
+        string ac = this->floor->purchase(dir);
+        display->setAction(ac);
+        isValidInput = false;
+        return;
 
     } else if (input == "r") {
         this->status = "restart";
 
     } else if (input == "q") {
         this->status = "quit";
-
     } else {
         //invalid input
         display->setAction("Invalid input, please try again. ");
-        canRandomMove = false;
+        isValidInput = false;
         return;
-    }
-    if (floor->player->getType() == "Troll") {
-        floor->regainFive();
     }
 }
 
